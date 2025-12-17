@@ -17,7 +17,7 @@ For detailed explanations on each feature, component and pages, as well as usage
 
 ## Repository Clone
   ```bash
-   https://github.com/Odeddidi/projflix.git
+   https://github.com/barsegevb/projflix.git
    ```
 
 ## Commands for Running the Project
