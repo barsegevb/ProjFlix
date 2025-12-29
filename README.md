@@ -1,4 +1,4 @@
-# projflix
+# ProjFlix
 
 ## Table of Contents
 - [Overview](#Overview)
