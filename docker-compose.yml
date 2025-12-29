@@ -19,7 +19,7 @@ services:
       dockerfile: api/Dockerfile.server
     container_name: app_server
     ports:
-      - "${APP_PORT:-3000}:${CONTAINER_PORT:-3000}"
+      - "${APP_PORT:-4000}:${CONTAINER_PORT:-3000}"
     volumes:
       - uploads_data:/usr/src/app/uploads
     networks:
@@ -44,12 +44,23 @@ services:
     networks:
       - app_network
     command: ["npm", "start"]  
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app_network
 
 
 volumes:
   repo_recommender_data:
   uploads_data:
-
+  mongo_data:
+  
 networks:
   app_network:
     driver: bridge

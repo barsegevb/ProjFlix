@@ -1,168 +1,158 @@
-# ProjFlix
+# ProjFlix 🎬
+An end-to-end streaming platform **inspired by Netflix** (academic project).
 
-## Table of Contents
-- [Overview](#Overview)
-- [docker and explanations](#Commands-for-Running-the-Project)
-- [Running the Android Application](#running-the-android-application)
-
-## Overview - Completion of the Project
-
-In this phase, we have **completed the entire project**, including both the **frontend and backend**. We have successfully developed a **fully functional website and mobile application** that deliver a seamless user experience for browsing, managing, and recommending movies.
-
-The system integrates a **React-based frontend** with a **Node.js backend**, allowing users to **search, add, edit, and delete movies and categories** while ensuring smooth interaction with the **recommendation system** implemented in C++.
-
-For detailed explanations on each feature, component and pages, as well as usage examples, please refer to the **Wiki directory**.
+**What you’ll find here (quick highlights):**
+- **C++ recommendation service** with a **multithreaded TCP server** (thread pool + synchronization)
+- **Node.js/Express REST API** backed by **MongoDB**
+- **React** web client + **Android (Java)** mobile client
+- **Docker Compose** setup for running the system locally
 
 ---
 
-## Repository Clone
-  ```bash
-   https://github.com/barsegevb/projflix.git
-   ```
+## Table of Contents
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Repository Structure](#repository-structure)
+- [Quick Start (Docker)](#quick-start-docker)
+- [Environment Variables](#environment-variables)
+- [Run Web / API Without Docker (Optional)](#run-web--api-without-docker-optional)
+- [Android App Setup](#android-app-setup)
+- [Documentation](#documentation)
+- [Troubleshooting](#troubleshooting)
 
-## Commands for Running the Project
-Create a configuration file: Inside the config directory, create a file named .env.local with the following structure:
-```bash
-APP_PORT=3001  # The port on the host machine where the Node.js server will be accessible.(your choice)
-CONTAINER_PORT=4000  # The port inside the container where the Node.js server listens.(your choice)
-RECOMMENDATION_PORT=12345  # The port on which the recommendation server (C++) will run.(your choice)
-CONNECTION_STRING=mongodb://host.docker.internal:27017  # Database connection string.(exactly like its here)
-JWT_SECRET="Vj4@7sF!9K#pLz^D2o7uN13X6A9Q5" # secret string for decodate token
-REACT_APP_API_URL=http://localhost:3001 # a way to get to the api server(must be : http://localhost:{APP_PORT}} )
-REACT_PORT=3000 #the port that the web running on 
+---
+
+## Architecture
+High level flow:
+
+1. **Clients** (React Web / Android) call the **REST API** (Node.js/Express).
+2. The API reads/writes data in **MongoDB**.
+3. For recommendations and “watch” updates, the API communicates with the **C++ recommender** over **TCP**.
+
+---
+
+## Tech Stack
+- **C++**: multithreaded TCP server, thread pool, synchronization (mutex / condition_variable)
+- **Backend**: Node.js, Express
+- **Database**: MongoDB
+- **Web**: React
+- **Mobile**: Android (Java)
+- **Infra**: Docker, Docker Compose
+
+---
+
+## Repository Structure
+- `recommend/` – **C++** recommender + multithreaded server
+- `api/` – **Node.js/Express** API + MongoDB integration (also connects to the C++ recommender)
+- `netflix/` – React web client
+- `Netflix android/` – Android client (Java)
+- `wiki/` – usage + setup notes for web and android
+- `samples/` – screenshots / configuration examples
+
+---
+
+## Quick Start (Docker)
+
+### Prerequisites
+- Docker + Docker Compose
+
+### 1) Create a `.env` file (recommended)
+Create a file named **`.env`** in the repository root (same folder as `docker-compose.yml`).
+
+Example:
+```env
+# MongoDB (inside docker network)
+CONNECTION_STRING=mongodb://mongo:27017/projflix
+
+# API ports
+APP_PORT=3001
+CONTAINER_PORT=4000
+
+# React -> API (from the browser on the host)
+REACT_APP_API_URL=http://localhost:3001
+
+# Recommender
+RECOMMENDATION_PORT=5555
+
+# JWT
+JWT_SECRET=Vj4@7sF!9K#pLz^D2o7uN13X6A9Q5
 
 ```
-## sample:
 
-   ![alt Text](<samples/config.png>)
-
-2. **Explanation of the variables:**
-
-- **APP_PORT**: Defines the port on your local machine (host) to access the Node.js server.This can be customized as needed during setup.
-- **CONTAINER_PORT**: Defines the port inside the container where the Node.js server runs.This can be customized as needed during setup.
-- **RECCOMENDATION_PORT**: Defines the port for the recommendation server. This can be customized as needed during setup.
-- **CONNECTION_STRING**: Specifies the connection string for your MongoDB database.
-- **JWT_SECRET**: Defines the secret data to decodate token
-- **REACT_APP_API_URL**: Defines the way to get the api server(must be : http://localhost:{APP_PORT} )
-- **REACT_PORT**: Defines the port inside and ouside the container where the React  runs.This can be customized as needed during setup.
-### Build the Docker Images
- ```bash
- docker-compose --env-file ./config/.env.local up --no-start
- ```
-## start the containers: 
-1. Start the Recommendation System (C++ Server):
+### 2) Run
 ```bash
-docker start recommender_server
- ```
- 2. Start the Node.js Server:
+docker compose up --build
+```
+
+### 3) Open
+- **Web client:** http://localhost:3000 (if your React container maps 3000)
+- **API:** http://localhost:<API_PORT> (depends on your compose mapping)
+
+> Note: port mappings are defined in `docker-compose.yml`.  
+> If you changed ports in `.env`, make sure the compose file maps them accordingly.
+
+---
+
+## Environment Variables
+The API and services rely on these environment variables:
+
+- `CONNECTION_STRING` – MongoDB connection string
+- `JWT_SECRET` – JWT signing secret
+- `PORT` / `CONTAINER_PORT` – API port (depending on how you run it)
+- `RECOMMENDATION_IP` – hostname/IP of the C++ recommender (Docker service name is usually `recommender_server`)
+- `RECOMMENDATION_PORT` – TCP port exposed by the C++ recommender
+- `REACT_APP_API_URL` – base URL used by the React app to reach the API
+
+---
+
+## Run Web / API Without Docker (Optional)
+
+### API (Node.js)
 ```bash
-docker start app_server
- ```
- 3. Start React: 
- ```bash
-docker start react_app
- ```
+cd api
+npm install
+npm start
+```
 
-## stop the containers :
-1. Stop the Recommendation System (C++ Server):
+### Web (React)
 ```bash
-docker stop recommender_server
- ```
- 2. Stop the Node.js Server:
+cd netflix
+npm install
+npm start
+```
+
+### C++ recommender (CMake)
 ```bash
-docker stop app_server
- ``` 
- 3. Stop the React Server:
-```bash
-docker stop react_app
- ```  
-## after build and run the containers 
-### open the web: 
-please refer to this address on your browser:
-```bash
-   http://localhost:3000
-   ```
-![alt Text](<samples/path.png>)
+cd recommend
+mkdir -p build
+cd build
+cmake ..
+make
+./myapp <PORT>
+```
 
-**the port should be the same one like you choosed on the config**
+---
 
-## Running the Android Application
+## Android App Setup
+1. Start the backend services (Docker recommended).
+2. Open `Netflix android/` in Android Studio.
+3. Update the Android configuration to point to your API host:
+   - If running on an **Android emulator**: `http://10.0.2.2:<API_PORT>`
+   - If running on a **physical device**: `http://<YOUR_PC_LOCAL_IP>:<API_PORT>`
+4. See `wiki/android.md` and `samples/` for configuration screenshots and file locations.
 
-### Prerequisites:
-1. **Install Android Studio**:
-   - Download and install [Android Studio](https://developer.android.com/studio) if you haven’t already.
+---
 
-2. **Open the Android Project**:
-   - Open the **`Netflix-android`** directory in Android Studio.
+## Documentation
+More detailed explanations (screenshots, configuration, features) are available under:
+- `wiki/web.md`
+- `wiki/android.md`
 
-### Configuration Steps:
-1. **Create `config.properties`**:
-   - Inside the project folder `Netflix-part-4-Web-Android\Netflix android\app\src\main\res`, create **`raw`** directory and inside the **`config.properties`** file.
-   - 
-   ![alt Text](<samples/loc_config_properties.png>)
+---
 
-    You need to write the **ip_address** , **port** and **jwt_secter** as follows:
- 
-- **ip_address**: Follow the instructions below
+## Troubleshooting
+- **Web/Android can’t reach the API**: verify the base URL (`REACT_APP_API_URL` / Android config) and exposed ports.
+- **Android + localhost**: on emulator use `10.0.2.2`, on real device use your PC’s local IP.
+- **Recommendations not working**: ensure `RECOMMENDATION_IP` and `RECOMMENDATION_PORT` match the running C++ service.
 
-  - **Android Emulator**: If you are using the **Android Emulator**, use the IP `10.0.2.2` to refer to your host machine.
- 
-  - **Local machine**: If you’re running the application on your local machine, use your local IP address
- 
-  - To find your **IP address**, follow these steps: 
-  - **Windows**: Open **Command Prompt** (`Win + R`, type `cmd`, press Enter), then run the command `ipconfig`. Look for the **"IPv4 Address"** under your network adapter (e.g., "Wi-Fi" or "Ethernet"). The           output will be something like `IPv4 Address. . . . . . . . . . . : 192.168.1.242`.
-    ![alt Text](<samples/ipinfo.png>)
- 
-  - **macOS**: Open **Terminal**, then run `ifconfig`. Look for the `inet` address under the network interface (typically `en0` for Wi-Fi). The output will look like `inet 192.168.1.242 netmask 0xffffff00            broadcast 192.168.1.255`.
-  
-  - **Linux**: Open **Terminal**, then run `ifconfig` (or `ip a` for newer systems). Find the `inet` address under your network interface (e.g., `wlan0` for Wi-Fi). The output will look like `inet 192.168.1.242      netmask 255.255.255.0 broadcast 192.168.1.255`.
-
- 
- - **port**: Use the same port as defined in your `.env.local` file for `APP_PORT`.
-
- - **jwt_secter** Use the same port as defined in your `.env.local` file for `JWT_SECRET`.
-
-   Example:
-   
-```bash
-ip_address=10.0.2.2
-port=3001
-jwt_secret=Vj4@7sF!9K#pLz^D2o7uN13X6A9Q5
-```   
-
- **Update `network_security_config.xml`**:
-   - After updating the `config.properties` file, you need to add the correct **IP address** or **Emulator address** to your `network_security_config.xml` file for network security permissions.
-   - This file is located under the `res/xml` directory of your Android project
-  
-  ![alt Text](<samples/loc_network_sec.png>)
-
-   - Add the following **IP addresses** to the `network_security_config.xml`:
-     - **For local machine**: Use your local IP address (e.g., `192.168.x.x`).
-     - **For Android Emulator**: Use `10.0.2.2` (this points to the host machine when running on the Android Emulator).
-
-### Example:
-   ```xml
-   <?xml version="1.0" encoding="utf-8"?>
-   <network-security-config>
-       <domain-config cleartextTrafficPermitted="true">
-           <domain includeSubdomains="true">192.168.1.239</domain>  <!--If you use in local machine replace with your local machine IP -->
-           <domain includeSubdomains="true">10.0.2.2</domain>  <!--If you use in Android Emulator -->
-       </domain-config>
-   </network-security-config>
-   ```
-   **make sure that all the servers are running first** [docker build and run](#Commands-for-Running-the-Project) (the recommend and app)
-
-   **Running the Android Application**:
-   - After starting the Docker containers, open **Android Studio**.
-   - Open the `Netflix-Android` project folder.
-   - Make sure you've completed the configuration steps mentioned earlier (updating `config.properties` and `network_security_config.xml`).
-   - Once everything is set up, **run the Android app** on either an emulator or a physical device.
-   
-   The Android app should now connect to the backend API running inside the Docker containers, and you should be able to interact with the 
-   system seamlessly.
-
-   **Note**: Make sure the ports and IP addresses in the `config.properties` and `network_security_config.xml` files are correctly set to match 
-   the values used in your Docker containers and the Android app.
-
-   Once the app is launched and everything is set up, you're good to go! You should be able to browse, manage, and interact with the movies and 
-   recommendation features seamlessly.
+---
