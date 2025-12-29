@@ -72,7 +72,7 @@ JWT_SECRET=change_me_to_a_long_random_secret
 RECOMMENDATION_PORT=5555
 
 # React web client -> API base URL (from the browser)
-REACT_APP_API_URL=http://localhost:3000
+REACT_APP_API_URL=http://localhost:4000
 ```
 
 ### 2) Run
