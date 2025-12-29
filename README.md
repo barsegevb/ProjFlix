@@ -61,18 +61,22 @@ Create a file named **`.env`** in the repository root (same folder as `docker-co
 
 Example:
 ```env
-# MongoDB connection string (your DB name/user/pass as needed)
+# MongoDB (inside docker network)
 CONNECTION_STRING=mongodb://mongo:27017/projflix
 
-# API
-CONTAINER_PORT=3000
-JWT_SECRET=change_me_to_a_long_random_secret
+# API ports
+APP_PORT=3001
+CONTAINER_PORT=4000
 
-# Recommender service (C++)
+# React -> API (from the browser on the host)
+REACT_APP_API_URL=http://localhost:3001
+
+# Recommender
 RECOMMENDATION_PORT=5555
 
-# React web client -> API base URL (from the browser)
-REACT_APP_API_URL=http://localhost:4000
+# JWT
+JWT_SECRET=Vj4@7sF!9K#pLz^D2o7uN13X6A9Q5
+
 ```
 
 ### 2) Run
@@ -152,6 +156,3 @@ More detailed explanations (screenshots, configuration, features) are available 
 - **Recommendations not working**: ensure `RECOMMENDATION_IP` and `RECOMMENDATION_PORT` match the running C++ service.
 
 ---
-
-## LinkedIn / Portfolio one-liner (optional)
-> GitHub repository containing the **C++ multithreaded backend service**, recommendation logic, and the full project setup.
